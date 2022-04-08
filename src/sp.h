@@ -18,6 +18,9 @@
 #include <vector>
 using namespace std;
 
+const int NUM_STEPS = 10;
+const double R = 0.999;
+
 class SequencePair {
 public:
     // constructor and destructor
@@ -32,10 +35,10 @@ public:
 
     // solver
     void Solve();
-    void Rotate90();
+    void Rotate90();    // 90 degree clockwise rotation
     void RandomInitialize();
     int EvaluateSequence(bool mode);    // 0: compute x coordinates, 1: comput y coordinates
-    double Cost();
+    double Cost(int w, int h);
     double Area();
     double Wirelength();
     double HPWL(Terminal* a, Terminal* b);
@@ -52,6 +55,7 @@ private:
     map<string, Terminal*> name2terminal_;
 
     // sequence pair    
+    bool has_legal_;
     vector<size_t> X_, Y_;
     vector<size_t> best_X_, best_Y_;
     int max_width_, max_height_;

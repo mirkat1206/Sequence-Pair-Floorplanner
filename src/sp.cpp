@@ -2,6 +2,8 @@
 #include "sp.h"
 #include "veb.h"
 #include <algorithm>
+#include <cmath>
+#include <random>
 using namespace std;
 
 SequencePair::SequencePair(ifstream &fin_blk, ifstream &fin_net) {
@@ -22,10 +24,123 @@ SequencePair::~SequencePair() {
 /* -------------------- solver -------------------- */
 void SequencePair::Solve() {
     this->RandomInitialize();
-    DEBUG_MSG("RandomInitialize finished...");
+    DEBUG_MSG("RandomInitialize() finished...");
+
+    // random
+    random_device rd;
+    mt19937 mt(rd());
+    uniform_int_distribution<int> rand_op(0, 2);
+    uniform_int_distribution<int> rand_blk(0, num_blocks_ - 1 - 1);
+    uniform_real_distribution<double> rand_01(0.0, 1.0);
 
     // simulated annealing
+    X_.assign(best_X_.begin(), best_X_.end());
+    Y_.assign(best_Y_.begin(), best_Y_.end());
 
+    double temparature = 99999999.0, delta;
+    int cnt = 0;
+    while (temparature > 1) {
+//        if (has_legal_ == false)
+  //          temparature = 100000.0;
+        for (int i = 0; i < NUM_STEPS; ++i) {
+            int op = rand_op(mt);
+            int a, b;
+            if (op == 0) {
+                // two module names in X
+                a = rand_blk(mt);
+                b = rand_blk(mt);
+                int temp = X_[a];
+                X_[a] = X_[b];
+                X_[b] = temp;
+                
+            } else if (op == 1) {
+                // two module names in Y                
+                a = rand_blk(mt);
+                b = rand_blk(mt);
+                int temp = Y_[a];
+                Y_[a] = Y_[b];
+                Y_[b] = temp;
+            } else if (op == 2) {
+                // the width and the height of a module
+                a = rand_blk(mt);
+                block_list_[a]->Rotate();
+            }
+
+            int w = this->EvaluateSequence(0);
+            int h = this->EvaluateSequence(1);
+
+            
+            if (has_legal_ == false) {
+                if (w <= W_ && h <= H_) {
+                    has_legal_ = true;
+                } else if (h <= W_ && w <= H_) {
+                    has_legal_ = true;
+                    this->Rotate90();
+                    int temp = w;
+                    w = h;
+                    h = temp;
+                }       
+            }
+                        
+            bool flag = false;
+            delta = w * h - max_width_ * max_height_;
+
+            // downhile move
+            if (delta <= 0) {
+                if (has_legal_ && (w > W_ || h > H_)) 
+                    flag = false;
+                else
+                    flag = true; 
+            }
+            // uphill move
+            else {
+                if (has_legal_) 
+                    flag = false;
+                else if (rand_01(mt) < exp(-delta / temparature))
+                    flag = true;            
+            }
+
+            if (has_legal_ == false && w <= W_ && h <= H_) {
+                has_legal_ = true;
+                flag = true;
+            }
+
+//            DEBUG_MSG(op << " --> " << flag);
+            // keep the move
+            if (flag) {
+                max_width_ = w;
+                max_height_ = h;
+            } 
+            // undo the move
+            else {
+                if (op == 0) {
+                    int temp = X_[a];
+                    X_[a] = X_[b];
+                    X_[b] = temp;
+                } else if (op == 1) {
+                    int temp = Y_[a];
+                    Y_[a] = Y_[b];
+                    Y_[b] = temp;
+                } else if (op == 2) {
+                    block_list_[a]->Rotate();                
+                }
+            }
+        }
+        max_width_ = this->EvaluateSequence(0);
+        max_height_ = this->EvaluateSequence(1);
+        if (cnt % 1000 == 0) {
+            cout << cnt << "Temparature = " << temparature
+                 << ", probability = " << exp(-delta / temparature) << ":\t"
+                 << "( " << max_width_ << " , " << max_height_ << " )"
+                 << "\tarea = " << max_width_ * max_height_ << endl;
+            cnt = 0;
+        }
+        cnt++;
+
+        temparature = R * temparature; 
+    }
+    best_X_.assign(X_.begin(), X_.end());
+    best_Y_.assign(Y_.begin(), Y_.end());
 }
 
 void SequencePair::Rotate90() {
@@ -42,7 +157,7 @@ void SequencePair::Rotate90() {
 void SequencePair::RandomInitialize() {
     int w, h;
     norm_area_ = 0;
-    bool has_legal = false;
+    has_legal_ = false;
     // 1st: simply 1 to n, does not care about boundary constraint
     for (int i = 0; i < num_blocks_; ++i) {
         X_.push_back(i);
@@ -51,9 +166,9 @@ void SequencePair::RandomInitialize() {
     w = this->EvaluateSequence(0);
     h = this->EvaluateSequence(1);
     if (w <= W_ && h <= H_) {
-        has_legal = true;
+        has_legal_ = true;
     } else if (h <= W_ && w <= H_) {
-        has_legal = true;
+        has_legal_ = true;
         this->Rotate90();
         int temp = w;
         w = h;
@@ -72,11 +187,11 @@ void SequencePair::RandomInitialize() {
         w = this->EvaluateSequence(0);
         h = this->EvaluateSequence(1);
         norm_area_ += w * h;
-        if (has_legal == false) {
+        if (has_legal_ == false) {
             if (w <= W_ && h <= H_) {
-                has_legal = true;
+                has_legal_ = true;
             } else if (h <= W_ && w <= H_) {
-                has_legal = true;
+                has_legal_ = true;
                 this->Rotate90();
                 int temp = w;
                 w = h;
@@ -84,7 +199,7 @@ void SequencePair::RandomInitialize() {
             }       
         }
         if (w * h < max_width_ * max_height_) {
-            if (has_legal && (w > W_ || h > H_))
+            if (has_legal_ && (w > W_ || h > H_))
                 continue;
             max_width_ = w;
             max_height_ = h;
