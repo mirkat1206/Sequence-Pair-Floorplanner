@@ -62,8 +62,8 @@ def read_rpt(filename):
         y1 = int(y1)
         x2 = int(x2)
         y2 = int(y2)
-        x_list.extend([x1, x2])
-        y_list.extend([y1, y2])
+        x_list.extend([x1]) #, x2])
+        y_list.extend([y1]) #, y2])
         w = x2 - x1
         h = y2 - y1
         cx = x1 + w / 2.0

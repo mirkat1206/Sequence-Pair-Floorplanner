@@ -24,7 +24,7 @@ const double R = 0.999;
 class SequencePair {
 public:
     // constructor and destructor
-    SequencePair(ifstream &fin_blk, ifstream &fin_net);
+    SequencePair(ifstream &fin_blk, ifstream &fin_net, double alpha);
     ~SequencePair();
 
     // input and output
@@ -45,6 +45,7 @@ public:
 
 private:
     // basic information
+    double alpha_;
     int W_, H_;   // boundary constraint
     int num_blocks_;
     int num_terminals_;

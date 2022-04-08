@@ -6,10 +6,11 @@
 #include <random>
 using namespace std;
 
-SequencePair::SequencePair(ifstream &fin_blk, ifstream &fin_net) {
-   this->ParseBlk(fin_blk);
-   this->ParseNet(fin_net);
-   DEBUG_MSG("Parse finished...");
+SequencePair::SequencePair(ifstream &fin_blk, ifstream &fin_net, double alpha) {
+    alpha_ = alpha;
+    this->ParseBlk(fin_blk);
+    this->ParseNet(fin_net);
+    DEBUG_MSG("Parse finished...");
 }
 
 SequencePair::~SequencePair() {
@@ -22,12 +23,27 @@ SequencePair::~SequencePair() {
 }
 
 /* -------------------- solver -------------------- */
+double SequencePair::Area() {
+    return max_width_ * max_height_;
+}
+
+double SequencePair::Wirelength() {
+    return 1;
+}
+
+double SequencePair:: HPWL(Terminal* a, Terminal* b) {
+    return 1;
+}
+
+
 double SequencePair::Cost(int w, int h) {
     if (has_legal_ == false) {
         int delta_w = (w - W_);
         int delta_h = (h - H_);
         int max_w = (max_width_ - W_);
         int max_h = (max_height_ - H_);
+        if (delta_w > 0 && delta_h > 0)
+            return w * h - max_width_ * max_height_;
         if (delta_w > 0)
             return delta_w - max_w;
         if (delta_h > 0)
@@ -55,9 +71,12 @@ void SequencePair::Solve() {
 
     double temparature = 99999999.0, delta;
     int cnt = 0;
-    while (temparature > 1) {
-//        if (has_legal_ == false)
-  //          temparature = 100000.0;
+    while (1) {
+        if (temparature < 1) {
+            if (has_legal_)
+                break;
+            temparature = 999.0;
+        }
         for (int i = 0; i < NUM_STEPS; ++i) {
             int op = rand_op(mt);
             int a, b;
@@ -88,12 +107,14 @@ void SequencePair::Solve() {
             if (has_legal_ == false) {
                 if (w <= W_ && h <= H_) {
                     has_legal_ = true;
+                    temparature = 99999.0;
                 } else if (h <= W_ && w <= H_) {
                     has_legal_ = true;
                     this->Rotate90();
                     int temp = w;
                     w = h;
                     h = temp;
+                    temparature = 99999.0;
                 }       
             }
                         
@@ -356,17 +377,17 @@ void SequencePair::ParseError(int code) {
 void SequencePair::WriteReport(ofstream &fout) {
     X_.assign(best_X_.begin(), best_X_.end());
     Y_.assign(best_Y_.begin(), best_Y_.end());
-    this->EvaluateSequence(0);
-    this->EvaluateSequence(1);
+    max_width_ = this->EvaluateSequence(0);
+    max_height_ = this->EvaluateSequence(1);
 
     // <final cost> 
-    
+    fout << this->Cost(max_width_, max_height_) << endl; 
     
     // <total wirelength>
-    
+    fout << this->Wirelength() << endl; 
     
     // <chip_area>
-    
+    fout << this->Area() << endl;
     
     // <chip_width> <chip_height>
     fout << max_width_ << " " << max_height_ << endl;

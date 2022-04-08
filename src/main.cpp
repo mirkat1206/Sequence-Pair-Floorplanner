@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    SequencePair sp(fin_blk, fin_net);
+    SequencePair sp(fin_blk, fin_net, stod(argv[1]));
 
     clock_t start, end;
     start = clock();
