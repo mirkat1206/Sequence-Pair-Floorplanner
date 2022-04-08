@@ -22,6 +22,22 @@ SequencePair::~SequencePair() {
 }
 
 /* -------------------- solver -------------------- */
+double SequencePair::Cost(int w, int h) {
+    if (has_legal_ == false) {
+        int delta_w = (w - W_);
+        int delta_h = (h - H_);
+        int max_w = (max_width_ - W_);
+        int max_h = (max_height_ - H_);
+        if (delta_w > 0)
+            return delta_w - max_w;
+        if (delta_h > 0)
+            return delta_h - max_h;
+        return -9999999;
+    } else {
+        return w * h - max_width_ * max_height_;
+    }
+}
+
 void SequencePair::Solve() {
     this->RandomInitialize();
     DEBUG_MSG("RandomInitialize() finished...");
@@ -69,7 +85,6 @@ void SequencePair::Solve() {
             int w = this->EvaluateSequence(0);
             int h = this->EvaluateSequence(1);
 
-            
             if (has_legal_ == false) {
                 if (w <= W_ && h <= H_) {
                     has_legal_ = true;
@@ -83,7 +98,8 @@ void SequencePair::Solve() {
             }
                         
             bool flag = false;
-            delta = w * h - max_width_ * max_height_;
+//            delta = w * h - max_width_ * max_height_;
+            delta = this->Cost(w, h);
 
             // downhile move
             if (delta <= 0) {
@@ -129,7 +145,7 @@ void SequencePair::Solve() {
         max_width_ = this->EvaluateSequence(0);
         max_height_ = this->EvaluateSequence(1);
         if (cnt % 1000 == 0) {
-            cout << cnt << "Temparature = " << temparature
+            cout << has_legal_ << ") Temparature = " << temparature
                  << ", probability = " << exp(-delta / temparature) << ":\t"
                  << "( " << max_width_ << " , " << max_height_ << " )"
                  << "\tarea = " << max_width_ * max_height_ << endl;
@@ -187,18 +203,21 @@ void SequencePair::RandomInitialize() {
         w = this->EvaluateSequence(0);
         h = this->EvaluateSequence(1);
         norm_area_ += w * h;
+        bool force_flag = false;
         if (has_legal_ == false) {
             if (w <= W_ && h <= H_) {
                 has_legal_ = true;
+                force_flag = true;
             } else if (h <= W_ && w <= H_) {
-                has_legal_ = true;
                 this->Rotate90();
                 int temp = w;
                 w = h;
                 h = temp;
+                has_legal_ = true;
+                force_flag = true;
             }       
         }
-        if (w * h < max_width_ * max_height_) {
+        if (w * h < max_width_ * max_height_ ||force_flag) {
             if (has_legal_ && (w > W_ || h > H_))
                 continue;
             max_width_ = w;

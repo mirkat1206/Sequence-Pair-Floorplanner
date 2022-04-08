@@ -85,6 +85,8 @@ if __name__ == '__main__':
     directory = 'output_pa2'
     for filename in os.listdir(directory):
         f = os.path.join(directory, filename)
+        if filename[0] == '.':
+            continue
         if os.path.isfile(f):
             print("now: " + f)
             read_rpt(f)

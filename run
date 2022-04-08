@@ -1,6 +1,6 @@
-./bin/fp 0.5 input_pa2/ami33.block input_pa2/ami33.nets output_pa2/ami33.rpt
-./bin/fp 0.5 input_pa2/ami49.block input_pa2/ami49.nets output_pa2/ami49.rpt
+ ./bin/fp 0.5 input_pa2/ami33.block input_pa2/ami33.nets output_pa2/ami33.rpt
+ ./bin/fp 0.5 input_pa2/ami49.block input_pa2/ami49.nets output_pa2/ami49.rpt
 ./bin/fp 0.5 input_pa2/apte.block input_pa2/apte.nets output_pa2/apte.rpt
-./bin/fp 0.5 input_pa2/hp.block input_pa2/hp.nets output_pa2/hp.rpt
-./bin/fp 0.5 input_pa2/xerox.block input_pa2/xerox.nets output_pa2/xerox.rpt
+ ./bin/fp 0.5 input_pa2/hp.block input_pa2/hp.nets output_pa2/hp.rpt
+ ./bin/fp 0.5 input_pa2/xerox.block input_pa2/xerox.nets output_pa2/xerox.rpt
 
