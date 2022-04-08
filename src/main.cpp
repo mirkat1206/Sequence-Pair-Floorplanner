@@ -1,12 +1,40 @@
 // main.cpp
 #include "sp.h"
+#include "veb.h"
 #include <fstream>
 #include <iostream>
 #include <iomanip>
 using namespace std;
 
+void debug() {
+    VanEmdeBoas* v = new VanEmdeBoas(10);
+    v->Insert(6);
+    v->Insert(1);
+    v->Insert(3);
+
+    for (int i = 0; i < 10; ++i) {
+        cout << i << "(" << v->IsMember(i) << "): "
+             << v->Predecessor(i) << ", "
+             << v->Successor(i) << endl;
+    }
+    cout << "max = " << v->GetMax() << ", min = " << v->GetMin() << endl;
+
+    v->Insert(9);
+    v->Delete(3);
+    v->Insert(0);
+
+    for (int i = 0; i < 10; ++i) {
+        cout << i << "(" << v->IsMember(i) << "): "
+             << v->Predecessor(i) << ", "
+             << v->Successor(i) << endl;
+    }
+    cout << "max = " << v->GetMax() << ", min = " << v->GetMin() << endl;
+}
+
 int main(int argc, char* argv[])
 {
+//    debug();    
+  
     ifstream fin_blk, fin_net;
     ofstream fout;
     if (argc == 5) {
@@ -38,7 +66,9 @@ int main(int argc, char* argv[])
     clock_t start, end;
     start = clock();
 
-//    sp.solve();
+     
+    sp.Solve();
+    sp.WriteReport(fout);
 
     end = clock();
     double time_taken = double(end - start) / double(CLOCKS_PER_SEC);       

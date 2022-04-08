@@ -19,6 +19,8 @@ public:
     size_t GetY()       const { return y_; }
     size_t GetCenterX() const { return x_; }
     size_t GetCenterY() const { return y_; }
+    void SetX(int x) { x_ = x; }
+    void SetY(int y) { y_ = y; }
 
 protected:
     string name_;
@@ -30,7 +32,7 @@ class Block: public Terminal {
 public:
     // constructor and destructor
     Block(string name, size_t w, size_t h) :
-        Terminal(name, 0, 0), width_(w), height_(h) {}
+        Terminal(name, 0, 0), width_(w), height_(h), rotate_(false) {}
     ~Block() {}
 
     // get and set
@@ -40,6 +42,7 @@ public:
     size_t GetArea()    const { return width_ * height_; }
     size_t GetCenterX() const { return rotate_ ? (x_ + height_ / 2) : (x_ + width_ / 2); }
     size_t GetCenterY() const { return rotate_ ? (y_ + width_ / 2) : (y_ + height_ / 2); }
+    void Rotate() { rotate_ = 1 - rotate_; }
 
 private:
     bool rotate_;

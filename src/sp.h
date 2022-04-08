@@ -32,6 +32,7 @@ public:
 
     // solver
     void Solve();
+    void Rotate90();
     void RandomInitialize();
     int EvaluateSequence(bool mode);    // 0: compute x coordinates, 1: comput y coordinates
     double Cost();
@@ -41,7 +42,7 @@ public:
 
 private:
     // basic information
-    int W, H;   // boundary constraint
+    int W_, H_;   // boundary constraint
     int num_blocks_;
     int num_terminals_;
     int num_nets_;
@@ -50,10 +51,11 @@ private:
     vector<Net*> net_list_;
     map<string, Terminal*> name2terminal_;
 
-    // sequence pair
-    vector<size_t> X, Y;
-    vector<size_t> best_X, best_Y;
+    // sequence pair    
+    vector<size_t> X_, Y_;
+    vector<size_t> best_X_, best_Y_;
     int max_width_, max_height_;
+    int norm_area_, norm_wirelength;
 };
 
 #endif
