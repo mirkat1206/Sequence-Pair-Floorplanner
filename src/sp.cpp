@@ -26,8 +26,6 @@ SequencePair::~SequencePair() {
 /* -------------------- solver -------------------- */
 void SequencePair::Solve() {
     this->RandomInitialize();
-    X_.assign(best_X_.begin(), best_X_.end());
-    Y_.assign(best_Y_.begin(), best_Y_.end());
     DEBUG_MSG("RandomInitialize() finished...");
 
     // random
@@ -173,6 +171,7 @@ void SequencePair::Rotate90() {
 
 void SequencePair::RandomInitialize() {
     int w, h;
+    vector<size_t> best_X, best_Y;
     has_legal_ = false;
     // 1st: simply 1 to n, does not care about boundary constraint
     for (int i = 0; i < num_blocks_; ++i) {
@@ -192,8 +191,8 @@ void SequencePair::RandomInitialize() {
     }
     max_width_ = w;
     max_height_ = h;
-    best_X_.assign(X_.begin(), X_.end());
-    best_Y_.assign(Y_.begin(), Y_.end());
+    best_X.assign(X_.begin(), X_.end());
+    best_Y.assign(Y_.begin(), Y_.end());
 
     // random
     random_device rd;
@@ -225,10 +224,13 @@ void SequencePair::RandomInitialize() {
                 continue;
             max_width_ = w;
             max_height_ = h;
-            best_X_.assign(X_.begin(), X_.end());
-            best_Y_.assign(Y_.begin(), Y_.end());
+            best_X.assign(X_.begin(), X_.end());
+            best_Y.assign(Y_.begin(), Y_.end());
         }
     }
+    X_.assign(best_X.begin(), best_X.end());
+    Y_.assign(best_Y.begin(), best_Y.end());
+
 }
 
 int SequencePair::EvaluateSequence(bool mode) {
@@ -255,21 +257,14 @@ int SequencePair::EvaluateSequence(bool mode) {
         if (mode == 0) {
             // x coordinates
             int pos = BUCKL[H->Predecessor(p)];
-            if (block_list_[b]->IsRotate() == false)
-                BUCKL[p] = pos + block_list_[b]->GetWidth();
-            else 
-                BUCKL[p] = pos + block_list_[b]->GetHeight();
+            BUCKL[p] = pos + block_list_[b]->GetWidth();
             block_list_[b]->SetX(pos);
         } else {
             // y coordinates
             int pos = BUCKL[H->Predecessor(p)];
-            if (block_list_[b]->IsRotate() == false)
-                BUCKL[p] = pos + block_list_[b]->GetHeight();
-            else
-                BUCKL[p] = pos + block_list_[b]->GetWidth();
+            BUCKL[p] = pos + block_list_[b]->GetHeight();
             block_list_[b]->SetY(pos);
         }
-        //
         int k = p;
         while (H->Successor(k) != -1) {
             k = H->Successor(k);
@@ -277,7 +272,6 @@ int SequencePair::EvaluateSequence(bool mode) {
                 H->Delete(k);            
         }
     }
-    //
     if (mode == 1) 
         reverse(X_.begin(), X_.end());
 
@@ -445,11 +439,8 @@ void SequencePair::WriteReport(ofstream &fout, double time_taken) {
     for (int i = 0; i < num_blocks_; ++i) {
         Block* b = block_list_[i];
         fout << b->GetName() << " "
-             << b->GetX() << " " << b->GetY() << " ";
-        if (b->IsRotate() == false) 
-            fout << b->GetX() + b->GetWidth() << " " << b->GetY() + b->GetHeight() << " ";
-        else
-            fout << b->GetX() + b->GetHeight() << " " << b->GetY() + b->GetWidth() << " ";
-        fout << endl;
+             << b->GetX() << " " << b->GetY() << " "
+             << b->GetX() + b->GetWidth() << " " << b->GetY() + b->GetHeight() << " "
+             << endl;
     }
 }

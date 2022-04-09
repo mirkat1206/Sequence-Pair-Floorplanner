@@ -37,9 +37,8 @@ public:
     ~Block() {}
 
     // get and set
-    bool IsRotate()     const { return rotate_; }
-    size_t GetWidth()   const { return width_; }
-    size_t GetHeight()  const { return height_; }
+    size_t GetWidth()   const { return rotate_ ? height_ : width_; }
+    size_t GetHeight()  const { return rotate_ ? width_ : height_; }
     size_t GetArea()    const { return width_ * height_; }
     double GetCenterX() const { return rotate_? x_ + height_ / 2.0 : x_ + width_ / 2.0; }
     double GetCenterY() const { return rotate_? y_ + width_ / 2.0 : y_ + height_ / 2.0; }

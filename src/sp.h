@@ -56,7 +56,6 @@ private:
     // sequence pair    
     bool has_legal_;
     vector<size_t> X_, Y_;
-    vector<size_t> best_X_, best_Y_;
     int max_width_, max_height_;
 };
 
