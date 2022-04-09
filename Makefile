@@ -14,4 +14,4 @@ veb.o: src/veb.cpp src/veb.h
 	$(CC) $(CFLAGS) -o veb.o -c src/veb.cpp
 
 clean:
-	rm -rf *.o $(EXECUTABLE)
+	rm -rf *.o *.HPWL $(EXECUTABLE) 

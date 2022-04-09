@@ -18,9 +18,6 @@
 #include <vector>
 using namespace std;
 
-const int NUM_STEPS = 10;
-const double R = 0.999;
-
 class SequencePair {
 public:
     // constructor and destructor
@@ -31,7 +28,7 @@ public:
     void ParseBlk(ifstream &fin);
     void ParseNet(ifstream &fin);
     void ParseError(int code);
-    void WriteReport(ofstream &fout);
+    void WriteReport(ofstream &fout, double time_taken);
 
     // solver
     void Solve();
@@ -39,9 +36,9 @@ public:
     void RandomInitialize();
     int EvaluateSequence(bool mode);    // 0: compute x coordinates, 1: comput y coordinates
     double Cost(int w, int h);
-    double Area();
+    size_t Area();
     double Wirelength();
-    double HPWL(Terminal* a, Terminal* b);
+    double HPWL(Net* net);
 
 private:
     // basic information
@@ -54,13 +51,13 @@ private:
     vector<Terminal*> terminal_list_;
     vector<Net*> net_list_;
     map<string, Terminal*> name2terminal_;
+    map<string, Block*> name2block_;
 
     // sequence pair    
     bool has_legal_;
     vector<size_t> X_, Y_;
     vector<size_t> best_X_, best_Y_;
     int max_width_, max_height_;
-    int norm_area_, norm_wirelength;
 };
 
 #endif

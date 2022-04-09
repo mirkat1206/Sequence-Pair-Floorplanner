@@ -2,6 +2,7 @@
 #include "sp.h"
 #include "veb.h"
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <random>
 using namespace std;
@@ -23,39 +24,10 @@ SequencePair::~SequencePair() {
 }
 
 /* -------------------- solver -------------------- */
-double SequencePair::Area() {
-    return max_width_ * max_height_;
-}
-
-double SequencePair::Wirelength() {
-    return 1;
-}
-
-double SequencePair:: HPWL(Terminal* a, Terminal* b) {
-    return 1;
-}
-
-
-double SequencePair::Cost(int w, int h) {
-    if (has_legal_ == false) {
-        int delta_w = (w - W_);
-        int delta_h = (h - H_);
-        int max_w = (max_width_ - W_);
-        int max_h = (max_height_ - H_);
-        if (delta_w > 0 && delta_h > 0)
-            return w * h - max_width_ * max_height_;
-        if (delta_w > 0)
-            return delta_w - max_w;
-        if (delta_h > 0)
-            return delta_h - max_h;
-        return -9999999;
-    } else {
-        return w * h - max_width_ * max_height_;
-    }
-}
-
 void SequencePair::Solve() {
     this->RandomInitialize();
+    X_.assign(best_X_.begin(), best_X_.end());
+    Y_.assign(best_Y_.begin(), best_Y_.end());
     DEBUG_MSG("RandomInitialize() finished...");
 
     // random
@@ -66,11 +38,11 @@ void SequencePair::Solve() {
     uniform_real_distribution<double> rand_01(0.0, 1.0);
 
     // simulated annealing
-    X_.assign(best_X_.begin(), best_X_.end());
-    Y_.assign(best_Y_.begin(), best_Y_.end());
-
-    double temparature = 99999999.0, delta;
     int cnt = 0;
+    double temparature = 99999999.0, delta;
+    double R = 0.999;
+    int NUM_STEPS = 10;
+    int prev_w = max_width_, prev_h = max_height_, strike_cnt = 0;
     while (1) {
         if (temparature < 1) {
             if (has_legal_)
@@ -119,7 +91,6 @@ void SequencePair::Solve() {
             }
                         
             bool flag = false;
-//            delta = w * h - max_width_ * max_height_;
             delta = this->Cost(w, h);
 
             // downhile move
@@ -142,7 +113,6 @@ void SequencePair::Solve() {
                 flag = true;
             }
 
-//            DEBUG_MSG(op << " --> " << flag);
             // keep the move
             if (flag) {
                 max_width_ = w;
@@ -166,18 +136,28 @@ void SequencePair::Solve() {
         max_width_ = this->EvaluateSequence(0);
         max_height_ = this->EvaluateSequence(1);
         if (cnt % 1000 == 0) {
-            cout << has_legal_ << ") Temparature = " << temparature
-                 << ", probability = " << exp(-delta / temparature) << ":\t"
-                 << "( " << max_width_ << " , " << max_height_ << " )"
-                 << "\tarea = " << max_width_ * max_height_ << endl;
+            if (prev_w == max_width_ && prev_h == max_height_) {
+                strike_cnt++;
+            } else { 
+                prev_w = max_width_;
+                prev_h = max_height_;
+                strike_cnt = 0;
+            }
+
+            cout << fixed
+                 << has_legal_ << ") Temparature = " << temparature
+                 << "\t( " << max_width_ << " , " << max_height_ << " )"
+                 << "\tarea = " << this->Area() 
+                 << "\twirelength = " << this->Wirelength() << endl;
             cnt = 0;
         }
         cnt++;
 
+        if (strike_cnt > 5)
+            break;
+
         temparature = R * temparature; 
     }
-    best_X_.assign(X_.begin(), X_.end());
-    best_Y_.assign(Y_.begin(), Y_.end());
 }
 
 void SequencePair::Rotate90() {
@@ -193,7 +173,6 @@ void SequencePair::Rotate90() {
 
 void SequencePair::RandomInitialize() {
     int w, h;
-    norm_area_ = 0;
     has_legal_ = false;
     // 1st: simply 1 to n, does not care about boundary constraint
     for (int i = 0; i < num_blocks_; ++i) {
@@ -211,19 +190,22 @@ void SequencePair::RandomInitialize() {
         w = h;
         h = temp;
     }
-    norm_area_ += w * h;
     max_width_ = w;
     max_height_ = h;
     best_X_.assign(X_.begin(), X_.end());
     best_Y_.assign(Y_.begin(), Y_.end());
 
+    // random
+    random_device rd;
+    
     // 2nd ~ 100th: shuffle, does care about boundary constraint
     for (int i = 2; i <= 100; ++i) {
+        //shuffle(X_.begin(), X_.end(), default_random_engine(rd()));
+        //shuffle(Y_.begin(), Y_.end(), default_random_engine(rd()));
         random_shuffle(X_.begin(), X_.end());
         random_shuffle(Y_.begin(), Y_.end());
         w = this->EvaluateSequence(0);
         h = this->EvaluateSequence(1);
-        norm_area_ += w * h;
         bool force_flag = false;
         if (has_legal_ == false) {
             if (w <= W_ && h <= H_) {
@@ -247,9 +229,6 @@ void SequencePair::RandomInitialize() {
             best_Y_.assign(Y_.begin(), Y_.end());
         }
     }
-
-    //
-    norm_area_ /= 100.0;
 }
 
 int SequencePair::EvaluateSequence(bool mode) {
@@ -305,6 +284,70 @@ int SequencePair::EvaluateSequence(bool mode) {
     return BUCKL[H->GetMax()]; 
 }
 
+double SequencePair::Cost(int w, int h) {
+    if (has_legal_ == false) {
+        int delta_w = (w - W_);
+        int delta_h = (h - H_);
+        int max_w = (max_width_ - W_);
+        int max_h = (max_height_ - H_);
+        if (delta_w > 0 && delta_h > 0)
+            return w * h - max_width_ * max_height_;
+        if (delta_w > 0)
+            return delta_w - max_w;
+        if (delta_h > 0)
+            return delta_h - max_h;
+        return -9999999;
+    } else {        
+        return w * h - max_width_ * max_height_;
+    }
+}
+
+size_t SequencePair::Area() {
+    return max_width_ * max_height_;
+}
+
+double SequencePair::Wirelength() {
+    double total_wl = 0;
+    for (int i = 0; i < num_nets_; ++i) {
+        total_wl += this->HPWL(net_list_[i]);
+    }
+    return total_wl;
+}
+
+double SequencePair::HPWL(Net* net) { 
+    double min_x, min_y, max_x, max_y;
+    if (net->GetTerminalDegree() > 0) {
+        min_x = net->GetTerminal(0)->GetCenterX();
+        min_y = net->GetTerminal(0)->GetCenterY();
+        max_x = min_x;
+        max_y = min_y;
+    } else if (net->GetBlockDegree() > 0) {
+        min_x = net->GetBlock(0)->GetCenterX();
+        min_y = net->GetBlock(0)->GetCenterY();
+        max_x = min_x;
+        max_y = min_y;
+    } else {
+        assert(0);
+    }
+    for (int i = 0; i < net->GetTerminalDegree(); ++i) {
+        Terminal* t = net->GetTerminal(i);
+        double x = t->GetCenterX(), y = t->GetCenterY();
+        if (x < min_x)  min_x = x;
+        if (x > max_x)  max_x = x;
+        if (y < min_y)  min_y = y;
+        if (y > max_y)  max_y = y;
+    }
+    for (int i = 0; i < net->GetBlockDegree(); ++i) {
+        Block* t = net->GetBlock(i);
+        double x = t->GetCenterX(), y = t->GetCenterY();
+        if (x < min_x)  min_x = x;
+        if (x > max_x)  max_x = x;
+        if (y < min_y)  min_y = y;
+        if (y > max_y)  max_y = y;
+    }
+    return (max_x - min_x) + (max_y - min_y);
+}
+
 /* -------------------- input and output -------------------- */
 void SequencePair::ParseBlk(ifstream &fin) {
     string s, name;
@@ -329,7 +372,7 @@ void SequencePair::ParseBlk(ifstream &fin) {
         fin >> name >> w >> h;
         Block* b = new Block(name, w, h);
         block_list_.push_back(b);
-        name2terminal_.insert(pair<string, Terminal*>(name, b));
+        name2block_.insert(pair<string, Block*>(name, b));
     }
     // <terminal name> terminal <terminal x coordinate> <terminal y coordinate>
     for (int i = 0; i < num_terminals_; ++i) {
@@ -344,7 +387,7 @@ void SequencePair::ParseBlk(ifstream &fin) {
 
 void SequencePair::ParseNet(ifstream &fin) {
     string s, name;
-    int num_degree;
+    int net_degree;
     // NumNets: <number of nets>
     fin >> s;
     if (s != "NumNets:")
@@ -357,11 +400,16 @@ void SequencePair::ParseNet(ifstream &fin) {
         if (s != "NetDegree:")
             this->ParseError(5);
         Net* n = new Net;
-        fin >> num_degree;
-        for (int j = 0; j < num_degree; ++j) {
+        fin >> net_degree;
+        for (int j = 0; j < net_degree; ++j) {
             fin >> name;
-            Terminal* t = name2terminal_[name];
-            n->AddTerminal(t);
+            if (name2terminal_.find(name) != name2terminal_.end()) {
+                n->AddTerminal(name2terminal_[name]);
+            } else if (name2block_.find(name) != name2block_.end()) {
+                n->AddBlock(name2block_[name]);
+            } else {
+                assert(0);
+            }
         }
         net_list_.push_back(n);
     }
@@ -374,17 +422,15 @@ void SequencePair::ParseError(int code) {
     exit(1);
 }
 
-void SequencePair::WriteReport(ofstream &fout) {
-    X_.assign(best_X_.begin(), best_X_.end());
-    Y_.assign(best_Y_.begin(), best_Y_.end());
+void SequencePair::WriteReport(ofstream &fout, double time_taken) {
     max_width_ = this->EvaluateSequence(0);
     max_height_ = this->EvaluateSequence(1);
 
     // <final cost> 
-    fout << this->Cost(max_width_, max_height_) << endl; 
+    fout << fixed << alpha_ * this->Area() + (1 - alpha_) * this->Wirelength() << endl; 
     
     // <total wirelength>
-    fout << this->Wirelength() << endl; 
+    fout << fixed << this->Wirelength() << endl; 
     
     // <chip_area>
     fout << this->Area() << endl;
@@ -393,13 +439,14 @@ void SequencePair::WriteReport(ofstream &fout) {
     fout << max_width_ << " " << max_height_ << endl;
     
     // <program_runtime>
+    fout << fixed << time_taken << endl;
 
     // <macro_name> <x1> <y1> <x2> <y2> 
     for (int i = 0; i < num_blocks_; ++i) {
         Block* b = block_list_[i];
         fout << b->GetName() << " "
              << b->GetX() << " " << b->GetY() << " ";
-        if (b->IsRotate() == false)
+        if (b->IsRotate() == false) 
             fout << b->GetX() + b->GetWidth() << " " << b->GetY() + b->GetHeight() << " ";
         else
             fout << b->GetX() + b->GetHeight() << " " << b->GetY() + b->GetWidth() << " ";

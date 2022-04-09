@@ -1,0 +1,8 @@
+./checker/verifier 0.5 input_pa2/ami33.block input_pa2/ami33.nets output_pa2/ami33.rpt
+./checker/verifier 0.5 input_pa2/ami49.block input_pa2/ami49.nets output_pa2/ami49.rpt 
+./checker/verifier 0.5 input_pa2/apte.block input_pa2/apte.nets output_pa2/apte.rpt 
+./checker/verifier 0.5 input_pa2/hp.block input_pa2/hp.nets output_pa2/hp.rpt 
+./checker/verifier 0.5 input_pa2/xerox.block input_pa2/xerox.nets output_pa2/xerox.rpt 
+
+./checker/verifier 0.5 input_pa2/0.block input_pa2/0.nets output_pa2/0.rpt 
+

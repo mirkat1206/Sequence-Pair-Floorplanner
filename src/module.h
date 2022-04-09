@@ -2,6 +2,7 @@
 #ifndef MODULE_H
 #define MODULE_H
 
+#include <iostream>
 #include <string>
 #include <vector>
 using namespace std;
@@ -37,12 +38,12 @@ public:
 
     // get and set
     bool IsRotate()     const { return rotate_; }
-    size_t GetWidth()   const { return rotate_ ? height_ : width_; }
-    size_t GetHeight()  const { return rotate_ ? width_ : height_; }
+    size_t GetWidth()   const { return width_; }
+    size_t GetHeight()  const { return height_; }
     size_t GetArea()    const { return width_ * height_; }
-    size_t GetCenterX() const { return rotate_ ? (x_ + height_ / 2) : (x_ + width_ / 2); }
-    size_t GetCenterY() const { return rotate_ ? (y_ + width_ / 2) : (y_ + height_ / 2); }
-    void Rotate() { rotate_ = 1 - rotate_; }
+    double GetCenterX() const { return rotate_? x_ + height_ / 2.0 : x_ + width_ / 2.0; }
+    double GetCenterY() const { return rotate_? y_ + width_ / 2.0 : y_ + height_ / 2.0; }
+    void Rotate() { rotate_ = rotate_ ? false : true; }
 
 private:
     bool rotate_;
@@ -57,12 +58,17 @@ public:
     ~Net() {}
 
     // get and set
-    int GetNetDegree()    const { return terminal_list_.size(); }
+    int GetNetDegree()      const { return terminal_list_.size() + block_list_.size(); }
+    int GetTerminalDegree() const { return terminal_list_.size(); }
+    int GetBlockDegree()    const { return block_list_.size(); }
     Terminal* GetTerminal(int i) const { return terminal_list_[i]; }
+    Block* GetBlock(int i)       const { return block_list_[i]; }
     void AddTerminal(Terminal* t) { terminal_list_.push_back(t); }
+    void AddBlock(Block* b)       { block_list_.push_back(b); }
 
 private:
     vector<Terminal*> terminal_list_;
+    vector<Block*> block_list_;
 };
 
 #endif

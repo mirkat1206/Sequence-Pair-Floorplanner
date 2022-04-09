@@ -35,13 +35,13 @@ def read_rpt(filename):
     ax.plot([0], [0])
 
     # <final cost> 
-
+    file.readline()
 
     # <total wirelength>
-
+    file.readline()
 
     # <chip_area>
-
+    file.readline()
 
     # <chip_width> <chip_height>
     chip_width, chip_height = file.readline().split()
@@ -51,6 +51,7 @@ def read_rpt(filename):
     plt.text(chip_width, chip_height, '({}, {})'.format(chip_width, chip_height))  
 
     # <program_runtime>    
+    file.readline()
 
     # <macro_name> <x1> <y1> <x2> <y2> 
     x_list = []
@@ -86,6 +87,8 @@ if __name__ == '__main__':
     for filename in os.listdir(directory):
         f = os.path.join(directory, filename)
         if filename[0] == '.':
+            continue
+        if filename.find(".HPWL") != -1:
             continue
         if os.path.isfile(f):
             print("now: " + f)
