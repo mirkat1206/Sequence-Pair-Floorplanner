@@ -188,7 +188,7 @@ D  60  0   100 50
 |xerox|6937|5379|5264|3885|20450640|686979.0|10568810.0|0.57|
 
 ### Floorplan visualization
-I wrote a python program `./src/plot.py` to visualize the generated floorplan.
+I wrote a python program `plot.py` to visualize the generated floorplan.
 
 |![](https://i.imgur.com/jx5Vq86.png)|
 |:---:|
