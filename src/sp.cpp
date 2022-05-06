@@ -419,22 +419,16 @@ void SequencePair::ParseError(int code) {
 void SequencePair::WriteReport(ofstream &fout, double time_taken) {
     max_width_ = this->EvaluateSequence(0);
     max_height_ = this->EvaluateSequence(1);
-
     // <final cost> 
-    fout << fixed << alpha_ * this->Area() + (1 - alpha_) * this->Wirelength() << endl; 
-    
+    fout << fixed << alpha_ * this->Area() + (1 - alpha_) * this->Wirelength() << endl;     
     // <total wirelength>
-    fout << fixed << this->Wirelength() << endl; 
-    
+    fout << fixed << this->Wirelength() << endl;     
     // <chip_area>
-    fout << this->Area() << endl;
-    
+    fout << this->Area() << endl;    
     // <chip_width> <chip_height>
-    fout << max_width_ << " " << max_height_ << endl;
-    
+    fout << max_width_ << " " << max_height_ << endl;   
     // <program_runtime>
     fout << fixed << time_taken << endl;
-
     // <macro_name> <x1> <y1> <x2> <y2> 
     for (int i = 0; i < num_blocks_; ++i) {
         Block* b = block_list_[i];
